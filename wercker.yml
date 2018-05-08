@@ -1,7 +1,7 @@
 #Use OpenJDK base docker image from dockerhub and open the application port
 box:
   id: openjdk
-  ports:
+  ports:8080
 - $PORT
 #Build our application using Maven, just as we always have
 build:
