@@ -1,9 +1,8 @@
-#Use OpenJDK base docker image from dockerhub and open the application port on the docker container
+#Use OpenJDK base docker image from dockerhub and open the application port
 box:
   id: openjdk
   ports:
-    - 8080
-
+    - $PORT
 #Build our application using Maven, just as we always have
 build:
   steps:
@@ -12,8 +11,8 @@ build:
     - script:
         name: maven build
         code: mvn clean assembly:assembly
-
-#Push the docker image with our built and tested application to the Oracle Container Registry
+        
+#Push the docker image with our built and tested application to Docker Hub
 push-release:
   steps:
     - internal/docker-push:
@@ -24,26 +23,5 @@ push-release:
         tag: $WERCKER_GIT_BRANCH-$WERCKER_GIT_COMMIT
         working-dir: /pipeline/source
         ports: $PORT
+        env: PORT=$PORT
         cmd: sh target/bin/start
-
-#Deploy our container from the Oracle Container Registry to the Oracle Container Engine (Kubernetes)
-deploy-to-cluster:
-    box:
-        id: alpine
-        cmd: /bin/sh
-    steps:
-
-    - bash-template
-
-    - script:
-        name: "Visualise Kubernetes config"
-        code: cat kubernetes.yml
-
-    - kubectl:
-        name: deploy to kubernetes
-        server: $KUBERNETES_MASTER
-        #username: $KUBERNETES_USERNAME
-        token: $KUBERNETES_TOKEN
-        insecure-skip-tls-verify: true
-        command: apply -f kubernetes.yml
-
